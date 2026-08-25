@@ -52,8 +52,9 @@ Docker will be used to package and orchestrate appropriate services.
 
 ## Phase 1 --- Python Simulation Core
 
-**Estimated total:** 7--10 focused development days\
-**Status:** In progress
+**Estimated total:** 7–10 focused development days  
+**Actual:** 7 focused business-day sessions  
+**Status:** Complete
 
 ### Purpose
 
@@ -92,17 +93,30 @@ and software-engineering skills.
 -   Rover movement is limited by remaining battery
 -   Turning currently does not consume battery
 
-### Remaining goals
+### Completed Phase 1 Scope
 
--   Expand automated test coverage
--   Continue improving telemetry and visualization
--   Add useful mission/environment behavior
--   Improve error handling and validation
--   Clean up project/package structure as complexity grows
--   Add appropriate comments and documentation
--   Produce a strong README
--   Ensure simulation behavior is deterministic and well tested before
-    later integration
+- Rover movement with forward and reverse operation
+- Target-speed control with acceleration/deceleration limits
+- Maximum speed, acceleration, and turn-rate constraints
+- Shortest-path heading control
+- Battery consumption, depletion, and zero-consumption behavior
+- Operational-state restrictions
+- Configurable timestep simulation
+- Exact command execution between timestep boundaries
+- Multiple commands within a single timestep
+- Mission command scheduling
+- Sequential waypoint objectives
+- Mission result evaluation
+- Deterministic simulation reruns
+- Telemetry state snapshots
+- CSV telemetry export
+- Trajectory and speed visualization
+- Constructor and input validation
+- Automated pytest coverage across Rover, Mission, Simulation, and TelemetryLogger
+- Clean repository and test organization
+- Git version control and public GitHub repository
+- Dependency and generated-output management
+- Portfolio-quality README and setup documentation
 
 ### Skills demonstrated
 
@@ -433,37 +447,78 @@ leaving the repository broken until the final phase.
 
 ------------------------------------------------------------------------
 
-## Current Checkpoint  - Updated 8/22
+## Current Checkpoint — Updated 8/25
 
-**Current phase:** Python Simulation Core
+**Current phase:** Phase 1 complete — Phase 2 begins next development session
 
-Exact command execution between timestep boundaries — complete
+### Phase 1 Final Status
 
-Multiple commands within one timestep — complete
+The Python Simulation Core is feature-complete, tested, documented, and version-controlled.
 
-simulate_timestep() refactor — complete
+Core components:
+- `Rover`
+- `Mission`
+- `Simulation`
+- `TelemetryLogger`
 
-Tests for both timing behaviors — complete
+Major completed behaviors:
+- 2D forward/reverse rover movement
+- Acceleration and deceleration
+- Speed and turn-rate limits
+- Shortest-path heading control
+- Battery consumption and depletion
+- Operational-state restrictions
+- Exact timed mission commands
+- Sequential waypoint objectives
+- Mission success/failure evaluation
+- Deterministic simulation reruns
+- Telemetry history and historical snapshots
+- CSV export
+- Matplotlib trajectory and speed plots
+- Input and constructor validation
+- Automated pytest coverage
 
-Battery prevents movement, acceleration, and turning — complete/tested
+### Phase 1 Final Design Decisions
 
-Commands may still update target speed/heading without battery — intentional design decision
+- `turn()` was removed; `turn_to()` and `update_heading()` are the authoritative turning system.
+- Position is copied where historical or initial state must remain independent of mutable rover state.
+- Initial headings are normalized.
+- Zero battery consumption is intentionally supported.
+- Commands may update target speed/heading without battery, while physical actuation remains disabled.
+- A repeated `Simulation.run()` performs a fresh deterministic run from the original rover state.
+- Missions with no waypoint objectives are considered objectively complete.
+- Fixed-rate telemetry remains the current model; richer event/fault logging is deferred.
+- Sensors are deferred as a strong candidate for the C++ simulation phase.
+- Terrain and hazards are deferred until they provide value during later visualization/integration work.
+- Randomized/Monte Carlo simulation is deferred until persistence and analytics make it more useful.
+- Mission command representation remains Python-callable-based for now and will be reconsidered during SQL persistence because callables cannot be stored directly in a relational database.
 
-turn() appears obsolete after introduction of turn_to() — candidate for removal during cleanup
+### Packaging Status
 
-Timestep sensitivity/numerical integration — known quality backlog
+- Repository structure cleaned
+- Tests organized under `tests/`
+- Generated output isolated under `output/`
+- `.gitignore` configured
+- `requirements.txt` created
+- Git repository initialized
+- Public GitHub repository created
+- README documents architecture, setup, execution, testing, design decisions, and roadmap
+- Crater Survey Run serves as the Phase 1 demonstration mission
+- Final demo completes successfully
+- Full automated test suite passes
 
-Input/constructor validation — remaining
+### Next Session — Phase 2: SQL and Persistent Mission Data
 
-Fixed-rate telemetry vs event logging — intentional current design; event log deferred
+Begin with SQLite and relational schema design.
 
-Floating-point output formatting — polish backlog
+Initial persistence targets:
+- Missions
+- Rover information/state
+- Telemetry samples
+- Mission results/events
+- Mission commands, after determining a persistable command representation
 
-Simulation rerun semantics — needs decision
-
-Command representation will need reconsideration when SQL persistence arrives — defer until justified
-
-Next major feature candidate — mission objectives/waypoints
+The immediate goal is to move beyond CSV-only telemetry while keeping the existing Python simulation runnable and tested.
 
 ------------------------------------------------------------------------
 
