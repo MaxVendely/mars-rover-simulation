@@ -1,7 +1,7 @@
 from rover import Rover
 from simulation import Simulation
 from mission import Mission
-
+from pathlib import Path
 
 
 def main():
@@ -55,6 +55,7 @@ def main():
     print("Current waypoint:", mission.get_current_waypoint())
 
 
+    Path("output").mkdir(exist_ok=True)
     simulation.logger.export_csv("output/mission.csv")
 
     print(simulation.get_summary())
