@@ -94,8 +94,8 @@ main.py
 Clone the repository and navigate to the project directory:
 
 ```bash
-git clone <repository-url>
-cd <repository-directory>
+git clone https://github.com/MaxVendely/mars-rover-simulation.git
+cd mars-rover-simulation
 ```
 
 Install the required Python packages:
