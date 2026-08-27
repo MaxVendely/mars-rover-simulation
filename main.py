@@ -2,6 +2,7 @@ from rover import Rover
 from simulation import Simulation
 from mission import Mission
 from pathlib import Path
+from database import Database
 
 
 def main():
@@ -64,3 +65,17 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+    database = Database()
+    database.initialize()
+
+    rover_id = database.add_rover(
+        "Optimism",
+        0.1,
+        5,
+        2,
+        30
+    )
+
+    print(f"Inserted rover ID: {rover_id}")
+    print(database.get_rovers())

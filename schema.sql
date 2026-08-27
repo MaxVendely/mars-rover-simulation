@@ -1,15 +1,15 @@
 PRAGMA foreign_keys = ON;
 
-CREATE TABLE rovers (
+CREATE TABLE IF NOT EXISTS rovers (
     id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     battery_consumption REAL NOT NULL,
     max_speed REAL NOT NULL,
     max_acceleration REAL NOT NULL,
     max_turn_rate REAL NOT NULL
 );
 
-CREATE TABLE missions (
+CREATE TABLE IF NOT EXISTS missions (
     id INTEGER PRIMARY KEY,
     rover_id INTEGER NOT NULL,
     name TEXT NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE missions (
     FOREIGN KEY (rover_id) REFERENCES rovers(id)
 );
 
-CREATE TABLE telemetry (
+CREATE TABLE IF NOT EXISTS telemetry (
     id INTEGER PRIMARY KEY,
     mission_id INTEGER NOT NULL,
     time REAL NOT NULL,
