@@ -17,3 +17,6 @@ output/
 
 # Internal project documents
 PROJECT_PLAN.md
+
+#SQL
+mars_rover.db
