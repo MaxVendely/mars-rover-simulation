@@ -79,3 +79,100 @@ class Database:
             )
 
             return cursor.fetchone()
+        
+    def add_mission(self, rover_id, name, duration):
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                INSERT INTO missions(
+                    rover_id,
+                    name,
+                    duration
+                )
+                VALUES (?, ?, ?)
+                """,
+                (
+                    rover_id,
+                    name,
+                    duration,
+                )
+            )
+
+            return cursor.lastrowid
+        
+    def update_mission_result(self, mission_id, result):
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                UPDATE missions
+                SET result = ?
+                WHERE id = ?
+                """,
+                (
+                    result,
+                    mission_id,
+                )
+            )
+
+    def add_telemetry(self, mission_id, sample):
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                INSERT INTO telemetry(
+                    mission_id,
+                    time,
+                    position_x,
+                    position_y,
+                    position_z,
+                    heading,
+                    speed,
+                    battery,
+                    operational
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    mission_id,
+                    sample["time"],
+                    sample["position"][0],
+                    sample["position"][1],
+                    sample["position"][2],
+                    sample["heading"],
+                    sample["speed"],
+                    sample["battery"],
+                    int(sample["operational"]),
+                )
+            )
+
+            return cursor.lastrowid
+        
+    def add_telemetry_history(self, mission_id, history):
+        with self.connect() as connection:
+            for sample in history:
+                connection.execute(
+                    """
+                    INSERT INTO telemetry(
+                        mission_id,
+                        time,
+                        position_x,
+                        position_y,
+                        position_z,
+                        heading,
+                        speed,
+                        battery,
+                        operational
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        mission_id,
+                        sample["time"],
+                        sample["position"][0],
+                        sample["position"][1],
+                        sample["position"][2],
+                        sample["heading"],
+                        sample["speed"],
+                        sample["battery"],
+                        int(sample["operational"]),
+                    )
+                )

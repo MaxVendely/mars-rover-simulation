@@ -52,8 +52,32 @@ def main():
     simulation.run()
 
 
-    print("Waypoint index:", mission.current_waypoint_index)
-    print("Current waypoint:", mission.get_current_waypoint())
+    database = Database()
+    database.initialize()
+
+    rover_id = database.add_rover(
+        optimism.rover_name,
+        optimism.battery_consumption,
+        optimism.max_speed,
+        optimism.max_acceleration,
+        optimism.max_turn_rate
+    )
+
+    mission_id = database.add_mission(
+        rover_id,
+        mission.name,
+        mission.duration
+    )
+
+    database.update_mission_result(
+        mission_id,
+        simulation.mission_result
+    )
+
+    database.add_telemetry_history(
+        mission_id,
+        simulation.logger.history
+    )
 
 
     Path("output").mkdir(exist_ok=True)
@@ -65,17 +89,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    database = Database()
-    database.initialize()
-
-    rover_id = database.add_rover(
-        "Optimism",
-        0.1,
-        5,
-        2,
-        30
-    )
-
-    print(f"Inserted rover ID: {rover_id}")
-    print(database.get_rovers())
