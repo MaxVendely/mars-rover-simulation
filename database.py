@@ -1,3 +1,4 @@
+import math
 import sqlite3
 
 
@@ -99,10 +100,26 @@ class Database:
             )
 
             return cursor.lastrowid
+
+    def get_missions(self):
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                SELECT
+                    id,
+                    rover_id,
+                    name,
+                    duration,
+                    result
+                FROM missions;
+                """
+            )
+
+            return cursor.fetchall()
         
     def update_mission_result(self, mission_id, result):
         with self.connect() as connection:
-            cursor = connection.execute(
+            connection.execute(
                 """
                 UPDATE missions
                 SET result = ?
@@ -145,6 +162,27 @@ class Database:
             )
 
             return cursor.lastrowid
+
+    def get_telemetry(self):
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                SELECT
+                    id,
+                    mission_id,
+                    time,
+                    position_x,
+                    position_y,
+                    position_z,
+                    heading,
+                    speed,
+                    battery,
+                    operational
+                FROM telemetry;
+                """
+            )
+
+            return cursor.fetchall()
         
     def add_telemetry_history(self, mission_id, history):
         with self.connect() as connection:
@@ -176,3 +214,76 @@ class Database:
                         int(sample["operational"]),
                     )
                 )
+
+    def get_mission_speed_metrics(self, mission_id):
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                SELECT
+                    AVG(speed),
+                    MAX(speed)
+                FROM telemetry
+                WHERE mission_id = ?;
+                """,
+                (mission_id,),
+            )
+
+            return cursor.fetchone()
+
+    def get_mission_battery_consumption(self, mission_id):
+            with self.connect() as connection:
+                cursor = connection.execute(
+                    """
+                    SELECT
+                        (
+                            SELECT battery
+                            FROM telemetry
+                            WHERE mission_id = ?
+                            ORDER BY time ASC
+                            LIMIT 1
+                        )
+                        -
+                        (
+                            SELECT battery
+                            FROM telemetry
+                            WHERE mission_id = ?
+                            ORDER BY time DESC
+                            LIMIT 1
+                        )
+                    """,
+                    (mission_id, mission_id,),
+                )
+    
+                return cursor.fetchone()[0]
+
+    def get_mission_positions(self, mission_id):
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                SELECT
+                    position_x,
+                    position_y
+                FROM telemetry
+                WHERE mission_id = ?
+                ORDER BY time ASC;
+                """,
+                (mission_id,),
+            )
+
+            return cursor.fetchall()
+
+    def get_mission_distance_traveled(self, mission_id):
+        positions = self.get_mission_positions(mission_id)
+
+        total_distance = 0.0
+
+        for index in range(1, len(positions)):
+            previous_x, previous_y = positions[index - 1]
+            current_x, current_y = positions[index]
+
+            total_distance += math.hypot(
+                current_x - previous_x,
+                current_y - previous_y
+            )
+
+        return total_distance
