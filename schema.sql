@@ -31,3 +31,12 @@ CREATE TABLE IF NOT EXISTS telemetry (
     operational INTEGER NOT NULL,
     FOREIGN KEY (mission_id) REFERENCES missions(id)
 );
+
+CREATE TABLE IF NOT EXISTS mission_commands (
+    id INTEGER PRIMARY KEY,
+    mission_id INTEGER NOT NULL,
+    execute_time REAL NOT NULL,
+    command_type TEXT NOT NULL,
+    value REAL NOT NULL,
+    FOREIGN KEY (mission_id) REFERENCES missions(id)
+);

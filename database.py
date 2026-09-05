@@ -116,6 +116,25 @@ class Database:
             )
 
             return cursor.fetchall()
+
+    def get_mission_history(self):
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                SELECT
+                    missions.id,
+                    missions.name,
+                    missions.duration,
+                    missions.result,
+                    rovers.name
+                FROM missions
+                JOIN rovers
+                    ON missions.rover_id = rovers.id
+                ORDER BY missions.id ASC;
+                """
+            )
+
+            return cursor.fetchall()
         
     def update_mission_result(self, mission_id, result):
         with self.connect() as connection:
@@ -180,6 +199,36 @@ class Database:
                     operational
                 FROM telemetry;
                 """
+            )
+
+            return cursor.fetchall()
+
+    def get_telemetry_by_time_range(self, mission_id, start_time, end_time):
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                SELECT
+                    id,
+                    mission_id,
+                    time,
+                    position_x,
+                    position_y,
+                    position_z,
+                    heading,
+                    speed,
+                    battery,
+                    operational
+                FROM telemetry
+                WHERE mission_id = ?
+                    AND time >= ?
+                    AND time <= ?
+                ORDER BY time ASC;
+                """,
+                (
+                    mission_id,
+                    start_time,
+                    end_time,
+                )
             )
 
             return cursor.fetchall()
@@ -287,3 +336,44 @@ class Database:
             )
 
         return total_distance
+
+    def add_mission_command(self, mission_id, execute_time, command_type, value):
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                INSERT INTO mission_commands(
+                    mission_id,
+                    execute_time,
+                    command_type,
+                    value
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    mission_id,
+                    execute_time,
+                    command_type,
+                    value,
+                ),
+            )
+
+            return cursor.lastrowid
+
+    def get_mission_commands(self, mission_id):
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                SELECT
+                    id,
+                    mission_id,
+                    execute_time,
+                    command_type,
+                    value
+                FROM mission_commands
+                WHERE mission_id = ?
+                ORDER BY execute_time ASC;
+                """,
+                (mission_id,),
+            )
+
+            return cursor.fetchall()

@@ -501,3 +501,162 @@ def test_simulation_persists_to_database(database):
 
     assert telemetry[0][2] == 0.0
     assert telemetry[-1][2] == mission.duration
+
+def test_get_mission_history(database):
+    rover_id_1 = database.add_rover(
+        "Confidence 1",
+        0.1,
+        5,
+        2,
+        30,
+    )
+
+    rover_id_2 = database.add_rover(
+        "Confidence 2",
+        0.1,
+        5,
+        2,
+        30,
+    )
+
+    mission_id_1 = database.add_mission(
+        rover_id_1,
+        "Test Mission 1",
+        35,
+    )
+
+    mission_id_2 = database.add_mission(
+        rover_id_2,
+        "Test Mission 2",
+        30,
+    )
+
+    database.update_mission_result(mission_id_1, "SUCCESS")
+    database.update_mission_result(mission_id_2, "FAILED_OBJECTIVE")
+
+    mission_history = database.get_mission_history()
+
+    assert len(mission_history) == 2
+    assert len(mission_history[0]) == 5
+
+    assert mission_history[0][0] == mission_id_1
+    assert mission_history[0][1] == "Test Mission 1"
+    assert mission_history[0][2] == 35
+    assert mission_history[0][3] == "SUCCESS"
+    assert mission_history[0][4] == "Confidence 1"
+
+
+    assert mission_history[1][0] == mission_id_2
+    assert mission_history[1][1] == "Test Mission 2"
+    assert mission_history[1][2] == 30
+    assert mission_history[1][3] == "FAILED_OBJECTIVE"
+    assert mission_history[1][4] == "Confidence 2"
+
+def test_get_telemetry_by_time_range(database):
+    rover_id = database.add_rover(
+        "Confidence",
+        0.1,
+        5,
+        2,
+        30,
+    )
+
+    mission_id = database.add_mission(
+        rover_id,
+        "Test Mission",
+        35,
+    )
+
+    sample1 = {
+        "time": 0.0,
+        "position": [0, 0, 0],
+        "heading": 90,
+        "speed": 4,
+        "battery": 95,
+        "operational": True,
+    }
+
+    sample2 = {
+        "time": 5.0,
+        "position": [30, 40, 0],
+        "heading": 90,
+        "speed": 4,
+        "battery": 90,
+        "operational": True,
+    }
+
+    sample3 = {
+        "time": 10.0,
+        "position": [60, 80, 0],
+        "heading": 90,
+        "speed": 4,
+        "battery": 85,
+        "operational": True,
+    }
+
+    sample4 = {
+        "time": 15.0,
+        "position": [0, 0, 0],
+        "heading": 90,
+        "speed": 4,
+        "battery": 95,
+        "operational": True,
+    }
+    
+    sample5 = {
+        "time": 20.0,
+        "position": [30, 40, 0],
+        "heading": 90,
+        "speed": 4,
+        "battery": 90,
+        "operational": True,
+    }
+
+    history = [sample1, sample2, sample3, sample4, sample5]
+
+    database.add_telemetry_history(
+        mission_id,
+        history
+    )
+
+    telemetry_range = database.get_telemetry_by_time_range(mission_id, 5, 15)
+
+    assert len(telemetry_range) == 3
+
+    assert telemetry_range[0][2] == 5.0
+    assert telemetry_range[1][2] == 10.0
+    assert telemetry_range[2][2] == 15.0
+
+def test_add_mission_command(database):
+    rover_id = database.add_rover(
+        "Confidence",
+        0.1,
+        5,
+        2,
+        30,
+    )
+
+    mission_id = database.add_mission(
+        rover_id,
+        "Test Mission",
+        35,
+    )
+
+    command_id_1 = database.add_mission_command(mission_id, 5.0, "TURN_TO", 90)
+    command_id_2 = database.add_mission_command(mission_id, 10.0, "SET_SPEED", 3)
+
+    commands = database.get_mission_commands(mission_id)
+
+    assert len(commands) == 2
+
+    assert commands[0][0] == command_id_1
+    assert commands[0][1] == mission_id
+    assert commands[0][2] == 5.0
+    assert commands[0][3] == "TURN_TO"
+    assert commands[0][4] == 90.0
+
+    assert commands[1][0] == command_id_2
+    assert commands[1][1] == mission_id
+    assert commands[1][2] == 10.0
+    assert commands[1][3] == "SET_SPEED"
+    assert commands[1][4] == 3.0
