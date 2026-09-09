@@ -660,3 +660,85 @@ def test_add_mission_command(database):
     assert commands[1][2] == 10.0
     assert commands[1][3] == "SET_SPEED"
     assert commands[1][4] == 3.0
+
+def test_add_mission_commands(database):
+    rover = Rover(
+        "Confidence",
+        100,
+        [0, 0, 0],
+        0,
+        True,
+        0,
+        0.1,
+        5,
+        2,
+        30,
+    )
+
+    mission = Mission("Test Mission", 20)
+
+    mission.add_command(5.0, rover.turn_to, 90)
+    mission.add_command(10.0, rover.set_speed, 3)
+
+    rover_id = database.add_rover(
+        rover.rover_name,
+        rover.battery_consumption,
+        rover.max_speed,
+        rover.max_acceleration,
+        rover.max_turn_rate
+    )
+    mission_id = database.add_mission(rover_id, mission.name, mission.duration)
+
+    database.add_mission_commands(mission_id, mission)
+
+    commands = database.get_mission_commands(mission_id)
+
+    assert len(commands) == 2
+
+    assert commands[0][1] == mission_id
+    assert commands[0][2] == 5.0
+    assert commands[0][3] == "TURN_TO"
+    assert commands[0][4] == 90.0
+
+    assert commands[1][1] == mission_id
+    assert commands[1][2] == 10.0
+    assert commands[1][3] == "SET_SPEED"
+    assert commands[1][4] == 3.0
+
+def test_add_mission_commands_rejects_unsupported_command(database):
+    rover = Rover(
+        "Confidence",
+        100,
+        [0, 0, 0],
+        0,
+        True,
+        0,
+        0.1,
+        5,
+        2,
+        30,
+    )
+
+    mission = Mission("Test Mission", 20)
+
+    def unsupported_command(value):
+        pass
+
+    mission.add_command(5.0, unsupported_command, 10)
+
+    rover_id = database.add_rover(
+        rover.rover_name,
+        rover.battery_consumption,
+        rover.max_speed,
+        rover.max_acceleration,
+        rover.max_turn_rate,
+    )
+
+    mission_id = database.add_mission(
+        rover_id,
+        mission.name,
+        mission.duration,
+    )
+
+    with pytest.raises(ValueError):
+        database.add_mission_commands(mission_id, mission)

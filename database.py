@@ -377,3 +377,19 @@ class Database:
             )
 
             return cursor.fetchall()
+
+    def add_mission_commands(self, mission_id, mission):
+        for execute_time, function, args in mission.commands:
+            if function.__name__ == "turn_to":
+                command_type = "TURN_TO"
+            elif function.__name__ == "set_speed":
+                command_type = "SET_SPEED"
+            else:
+                raise ValueError(f"Unsupported mission command: {function.__name__}")
+
+            self.add_mission_command(
+                mission_id,
+                execute_time,
+                command_type,
+                args[0],
+            )
