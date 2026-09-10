@@ -40,3 +40,9 @@ CREATE TABLE IF NOT EXISTS mission_commands (
     value REAL NOT NULL,
     FOREIGN KEY (mission_id) REFERENCES missions(id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_telemetry_mission_time
+ON telemetry(mission_id, time);
+
+CREATE INDEX IF NOT EXISTS idx_mission_commands_mission_time
+ON mission_commands(mission_id, execute_time);

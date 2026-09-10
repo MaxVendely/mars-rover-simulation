@@ -197,7 +197,8 @@ class Database:
                     speed,
                     battery,
                     operational
-                FROM telemetry;
+                FROM telemetry
+                ORDER BY mission_id ASC, time ASC;
                 """
             )
 
@@ -269,8 +270,8 @@ class Database:
             cursor = connection.execute(
                 """
                 SELECT
-                    AVG(speed),
-                    MAX(speed)
+                    AVG(ABS(speed)),
+                    MAX(ABS(speed))
                 FROM telemetry
                 WHERE mission_id = ?;
                 """,
@@ -280,30 +281,30 @@ class Database:
             return cursor.fetchone()
 
     def get_mission_battery_consumption(self, mission_id):
-            with self.connect() as connection:
-                cursor = connection.execute(
-                    """
-                    SELECT
-                        (
-                            SELECT battery
-                            FROM telemetry
-                            WHERE mission_id = ?
-                            ORDER BY time ASC
-                            LIMIT 1
-                        )
-                        -
-                        (
-                            SELECT battery
-                            FROM telemetry
-                            WHERE mission_id = ?
-                            ORDER BY time DESC
-                            LIMIT 1
-                        )
-                    """,
-                    (mission_id, mission_id,),
-                )
-    
-                return cursor.fetchone()[0]
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                SELECT
+                    (
+                        SELECT battery
+                        FROM telemetry
+                        WHERE mission_id = ?
+                        ORDER BY time ASC
+                        LIMIT 1
+                    )
+                    -
+                    (
+                        SELECT battery
+                        FROM telemetry
+                        WHERE mission_id = ?
+                        ORDER BY time DESC
+                        LIMIT 1
+                    )
+                """,
+                (mission_id, mission_id,),
+            )
+
+            return cursor.fetchone()[0]
 
     def get_mission_positions(self, mission_id):
         with self.connect() as connection:

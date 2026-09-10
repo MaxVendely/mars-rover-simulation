@@ -1,5 +1,7 @@
-import pytest
 import sqlite3
+
+import pytest
+
 from database import Database
 from mission import Mission
 from rover import Rover
@@ -14,6 +16,8 @@ def database(tmp_path):
     database.initialize()
 
     return database
+
+
 
 def test_add_rover(database):
     rover_id = database.add_rover(
@@ -47,12 +51,12 @@ def test_add_multiple_rovers(database):
     )
 
     rover_id_2 = database.add_rover(
-            "Confidence2",
-            0.1,
-            5,
-            2,
-            30,
-        )
+        "Confidence2",
+        0.1,
+        5,
+        2,
+        30,
+    )
     
 
     rovers = database.get_rovers()
@@ -87,12 +91,12 @@ def test_add_duplicate_rovers(database):
     )
 
     rover_id_2 = database.add_rover(
-            "Confidence",
-            0.1,
-            5,
-            2,
-            30,
-        )
+        "Confidence",
+        0.1,
+        5,
+        2,
+        30,
+    )
     
 
     rovers = database.get_rovers()
@@ -347,7 +351,7 @@ def test_get_mission_speed_metrics(database):
         "time": 2.0,
         "position": [10, 20, 0],
         "heading": 90,
-        "speed": 6,
+        "speed": -6,
         "battery": 95.5,
         "operational": True,
     }
@@ -488,9 +492,12 @@ def test_simulation_persists_to_database(database):
 
     database.add_telemetry_history(mission_id, simulation.logger.history)
 
+    database.add_mission_commands(mission_id, mission)
+
     rovers = database.get_rovers()
     missions = database.get_missions()
     telemetry = database.get_telemetry()
+    commands = database.get_mission_commands(mission_id)
 
     assert len(rovers) == 1
     assert len(missions) == 1
@@ -501,6 +508,13 @@ def test_simulation_persists_to_database(database):
 
     assert telemetry[0][2] == 0.0
     assert telemetry[-1][2] == mission.duration
+
+    assert len(commands) == 1
+
+    assert commands[0][1] == mission_id
+    assert commands[0][2] == 1.0
+    assert commands[0][3] == "SET_SPEED"
+    assert commands[0][4] == 4.0
 
 def test_get_mission_history(database):
     rover_id_1 = database.add_rover(
